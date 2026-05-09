@@ -42,6 +42,16 @@ class APHA_Attribution {
 	const COOKIE_CLICK_IDS = 'apha_cid';
 
 	/**
+	 * Cookie name for the site-owned funnel session ID.
+	 *
+	 * This ID is generated before the first PostHog pageview so WordPress
+	 * landing, checkout, and server-side order events can be joined reliably.
+	 *
+	 * @var string
+	 */
+	const COOKIE_FUNNEL_SESSION_ID = 'apha_funnel_session_id';
+
+	/**
 	 * UTM parameters to capture.
 	 *
 	 * @var array
@@ -93,9 +103,51 @@ class APHA_Attribution {
 	 * for persisting attribution to order meta.
 	 */
 	public function __construct() {
+		add_action( 'init', array( $this, 'ensure_funnel_session_id' ), 4 );
 		add_action( 'init', array( $this, 'capture_attribution' ), 5 );
 		add_action( 'woocommerce_checkout_order_created', array( $this, 'persist_to_order' ), 10, 1 );
 		add_action( 'woocommerce_store_api_checkout_order_processed', array( $this, 'persist_to_order' ), 10, 1 );
+	}
+
+	/**
+	 * Ensure every frontend visitor has a stable funnel session ID.
+	 *
+	 * @return void
+	 */
+	public function ensure_funnel_session_id() {
+		if ( is_admin() && ! wp_doing_ajax() ) {
+			return;
+		}
+
+		if ( ! empty( $_COOKIE[ self::COOKIE_FUNNEL_SESSION_ID ] ) ) {
+			return;
+		}
+
+		$this->set_scalar_cookie( self::COOKIE_FUNNEL_SESSION_ID, 'wp_' . wp_generate_uuid4(), 30, false );
+	}
+
+	/**
+	 * Get the current funnel session ID.
+	 *
+	 * @return string Funnel session ID, or empty string if unavailable.
+	 */
+	public function get_funnel_session_id() {
+		if ( empty( $_COOKIE[ self::COOKIE_FUNNEL_SESSION_ID ] ) ) {
+			$this->ensure_funnel_session_id();
+		}
+
+		return isset( $_COOKIE[ self::COOKIE_FUNNEL_SESSION_ID ] )
+			? sanitize_text_field( wp_unslash( $_COOKIE[ self::COOKIE_FUNNEL_SESSION_ID ] ) )
+			: '';
+	}
+
+	/**
+	 * Get the funnel key used by landing-page analytics.
+	 *
+	 * @return string Funnel key.
+	 */
+	public function get_funnel_key() {
+		return sanitize_key( apply_filters( 'apha_funnel_key', 'book-funnel' ) );
 	}
 
 	/**
@@ -124,12 +176,14 @@ class APHA_Attribution {
 
 		$landing_page = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$timestamp    = current_time( 'c' );
+		$host         = $this->get_request_host();
 
 		// Build touch data.
 		$touch_data = array_merge(
 			$utms,
 			array(
 				'landing_page' => $landing_page,
+				'host'         => $host,
 				'referrer'     => $referrer,
 				'timestamp'    => $timestamp,
 			)
@@ -198,6 +252,11 @@ class APHA_Attribution {
 		$session_count = isset( $_COOKIE['apha_sc'] ) ? absint( $_COOKIE['apha_sc'] ) : 1;
 		$order->update_meta_data( '_apha_session_count', $session_count );
 
+		$funnel_session_id = $this->get_funnel_session_id();
+		if ( ! empty( $funnel_session_id ) ) {
+			$order->update_meta_data( '_apha_funnel_session_id', $funnel_session_id );
+		}
+
 		// Fallback: WooCommerce 8.5+ native attribution if InsightTrail for PostHog cookies are empty.
 		if ( empty( $first_touch ) && empty( $last_touch ) ) {
 			$this->fallback_wc_attribution( $order );
@@ -259,9 +318,10 @@ class APHA_Attribution {
 	 */
 	public function get_order_attribution( $order ) {
 		$attribution = array();
+		$site_host   = $this->get_site_host();
 
 		// First-touch.
-		$ft_fields = array( 'source', 'medium', 'campaign', 'content', 'term', 'landing_page', 'referrer' );
+		$ft_fields = array( 'source', 'medium', 'campaign', 'content', 'term', 'landing_page', 'host', 'referrer' );
 		foreach ( $ft_fields as $field ) {
 			$value = $order->get_meta( '_apha_ft_' . $field );
 			if ( ! empty( $value ) ) {
@@ -270,7 +330,7 @@ class APHA_Attribution {
 		}
 
 		// Last-touch.
-		$lt_fields = array( 'source', 'medium', 'campaign', 'content', 'term', 'landing_page', 'referrer' );
+		$lt_fields = array( 'source', 'medium', 'campaign', 'content', 'term', 'landing_page', 'host', 'referrer' );
 		foreach ( $lt_fields as $field ) {
 			$value = $order->get_meta( '_apha_lt_' . $field );
 			if ( ! empty( $value ) ) {
@@ -296,6 +356,16 @@ class APHA_Attribution {
 		if ( ! empty( $sessions ) ) {
 			$attribution['session_count'] = (int) $sessions;
 		}
+
+		$funnel_session_id = $order->get_meta( '_apha_funnel_session_id' );
+		if ( empty( $funnel_session_id ) ) {
+			$funnel_session_id = $this->get_funnel_session_id();
+		}
+		if ( ! empty( $funnel_session_id ) ) {
+			$attribution['funnel_session_id'] = $funnel_session_id;
+		}
+
+		$attribution['funnel_key'] = $this->get_funnel_key();
 
 		// Checkout attribution.
 		$checkout_path = $order->get_meta( '_apha_checkout_path' );
@@ -323,6 +393,21 @@ class APHA_Attribution {
 		$order_type = $order->get_meta( '_apha_order_type' );
 		if ( ! empty( $order_type ) ) {
 			$attribution['order_type'] = $order_type;
+		}
+
+		$source_host = ! empty( $attribution['first_touch_host'] ) ? $attribution['first_touch_host'] : $site_host;
+		if ( ! empty( $source_host ) ) {
+			$attribution['source_host'] = $source_host;
+			$attribution['host']        = $source_host;
+			$attribution['$host']       = $source_host;
+		}
+
+		if ( ! empty( $attribution['first_touch_landing_page'] ) ) {
+			$attribution['source_page'] = $attribution['first_touch_landing_page'];
+			$attribution['$pathname']   = wp_parse_url( $attribution['first_touch_landing_page'], PHP_URL_PATH ) ?: $attribution['first_touch_landing_page'];
+		} elseif ( ! empty( $checkout_path ) ) {
+			$attribution['source_page'] = $checkout_path;
+			$attribution['$pathname']   = $checkout_path;
 		}
 
 		return $attribution;
@@ -428,6 +513,58 @@ class APHA_Attribution {
 	}
 
 	/**
+	 * Set a first-party scalar cookie.
+	 *
+	 * @param string  $name      Cookie name.
+	 * @param string  $value     Cookie value.
+	 * @param int     $days      Cookie expiry in days.
+	 * @param boolean $http_only Whether the cookie should be HTTP-only.
+	 * @return void
+	 */
+	private function set_scalar_cookie( $name, $value, $days, $http_only = true ) {
+		$expiry = time() + ( $days * DAY_IN_SECONDS );
+		$value  = sanitize_text_field( $value );
+
+		setcookie(
+			$name,
+			$value,
+			array(
+				'expires'  => $expiry,
+				'path'     => '/',
+				'secure'   => is_ssl(),
+				'httponly' => $http_only,
+				'samesite' => 'Lax',
+			)
+		);
+
+		$_COOKIE[ $name ] = $value;
+	}
+
+	/**
+	 * Get the current request host.
+	 *
+	 * @return string Request host.
+	 */
+	private function get_request_host() {
+		if ( ! empty( $_SERVER['HTTP_HOST'] ) ) {
+			return sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) );
+		}
+
+		return $this->get_site_host();
+	}
+
+	/**
+	 * Get the WordPress site host.
+	 *
+	 * @return string Site host.
+	 */
+	private function get_site_host() {
+		$host = wp_parse_url( home_url(), PHP_URL_HOST );
+
+		return $host ? sanitize_text_field( $host ) : '';
+	}
+
+	/**
 	 * Read and decode a JSON cookie.
 	 *
 	 * @param string $name Cookie name.
@@ -452,7 +589,7 @@ class APHA_Attribution {
 	 * @return void
 	 */
 	private function save_touch_meta( $order, $prefix, $data ) {
-		$fields = array( 'source', 'medium', 'campaign', 'content', 'term', 'landing_page', 'referrer', 'timestamp' );
+		$fields = array( 'source', 'medium', 'campaign', 'content', 'term', 'landing_page', 'host', 'referrer', 'timestamp' );
 
 		foreach ( $fields as $field ) {
 			if ( ! empty( $data[ $field ] ) ) {
@@ -516,7 +653,7 @@ class APHA_Attribution {
 		$keys = array();
 
 		foreach ( array( 'ft', 'lt' ) as $prefix ) {
-			foreach ( array( 'source', 'medium', 'campaign', 'content', 'term', 'landing_page', 'referrer', 'timestamp' ) as $field ) {
+			foreach ( array( 'source', 'medium', 'campaign', 'content', 'term', 'landing_page', 'host', 'referrer', 'timestamp' ) as $field ) {
 				$keys[] = '_apha_' . $prefix . '_' . $field;
 			}
 		}
@@ -527,6 +664,7 @@ class APHA_Attribution {
 
 		$keys[] = '_apha_days_to_conversion';
 		$keys[] = '_apha_session_count';
+		$keys[] = '_apha_funnel_session_id';
 		$keys[] = '_apha_checkout_path';
 		$keys[] = '_apha_checkout_type';
 		$keys[] = '_apha_session_id';

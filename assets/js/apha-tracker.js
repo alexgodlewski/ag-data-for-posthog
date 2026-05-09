@@ -25,18 +25,6 @@
 	var POLL_INTERVAL_MS = 100;
 
 	/**
-	 * Safely capture a PostHog event.
-	 *
-	 * @param {string} eventName  The event name.
-	 * @param {Object} properties The event properties.
-	 */
-	function capture(eventName, properties) {
-		if (window.posthog && typeof window.posthog.capture === 'function') {
-			window.posthog.capture(eventName, properties || {});
-		}
-	}
-
-	/**
 	 * Read a cookie value by name.
 	 *
 	 * @param {string} name Cookie name.
@@ -45,6 +33,59 @@
 	function getCookie(name) {
 		var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
 		return match ? decodeURIComponent(match[2]) : null;
+	}
+
+	/**
+	 * Get common funnel properties for all client-side events.
+	 *
+	 * @return {Object} Common PostHog properties.
+	 */
+	function getCommonProps() {
+		var config = window.aphaConfig || {};
+		var props = window.aphaCommonProps || {};
+
+		return {
+			funnel_session_id: props.funnel_session_id || config.funnelSessionId || getCookie('apha_funnel_session_id') || '',
+			funnel_key: props.funnel_key || config.funnelKey || 'book-funnel',
+			source_host: props.source_host || config.sourceHost || window.location.host,
+			source_page: window.location.pathname,
+			host: window.location.host,
+			$host: window.location.host,
+			$pathname: window.location.pathname,
+			$current_url: window.location.href,
+			app_source: 'wordpress'
+		};
+	}
+
+	/**
+	 * Merge common funnel properties with event-specific properties.
+	 *
+	 * @param {Object} properties Event-specific properties.
+	 * @return {Object} Merged properties.
+	 */
+	function mergeProperties(properties) {
+		var merged = getCommonProps();
+		var incoming = properties || {};
+
+		for (var key in incoming) {
+			if (incoming.hasOwnProperty(key)) {
+				merged[key] = incoming[key];
+			}
+		}
+
+		return merged;
+	}
+
+	/**
+	 * Safely capture a PostHog event.
+	 *
+	 * @param {string} eventName  The event name.
+	 * @param {Object} properties The event properties.
+	 */
+	function capture(eventName, properties) {
+		if (window.posthog && typeof window.posthog.capture === 'function') {
+			window.posthog.capture(eventName, mergeProperties(properties));
+		}
 	}
 
 	/**

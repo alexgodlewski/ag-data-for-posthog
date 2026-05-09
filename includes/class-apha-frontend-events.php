@@ -68,6 +68,9 @@ class APHA_Frontend_Events {
 				'personProfiles'    => APHA_Settings::get_person_profiles(),
 				'formIdentify'      => APHA_Settings::is_form_identify_enabled() ? '1' : '0',
 				'elementVisibility' => APHA_Settings::is_element_visibility_enabled() ? '1' : '0',
+				'funnelSessionId'   => $this->get_funnel_session_id(),
+				'funnelKey'         => $this->get_funnel_key(),
+				'sourceHost'        => wp_parse_url( home_url(), PHP_URL_HOST ),
 			)
 		);
 	}
@@ -83,6 +86,12 @@ class APHA_Frontend_Events {
 		$ui_host         = APHA_Settings::get_posthog_ui_host();
 		$person_profiles = APHA_Settings::get_person_profiles();
 		$consent_mode    = APHA_Settings::is_consent_mode_enabled();
+		$common_props    = array(
+			'funnel_session_id' => $this->get_funnel_session_id(),
+			'funnel_key'        => $this->get_funnel_key(),
+			'source_host'       => wp_parse_url( home_url(), PHP_URL_HOST ),
+			'app_source'        => 'wordpress',
+		);
 
 		// Build the init config object properties.
 		$config_parts = array(
@@ -96,9 +105,8 @@ class APHA_Frontend_Events {
 
 		$config_parts[] = 'person_profiles: ' . wp_json_encode( $person_profiles );
 
-		// Enable native pageview capture for web analytics, session replay URL
-		// timeline, and automatic UTM extraction.
-		$config_parts[] = 'capture_pageview: true';
+		// Capture pageviews manually after registering funnel super-properties.
+		$config_parts[] = 'capture_pageview: false';
 		$config_parts[] = 'capture_pageleave: true';
 
 		// Consent mode: start opted-out, use memory persistence until consent.
@@ -115,6 +123,19 @@ class APHA_Frontend_Events {
 		// Init call.
 		$script .= 'posthog.init(' . wp_json_encode( $api_key ) . ', { ' . $config_js . ' });' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Values are JSON-encoded.
 
+		// Register funnel/session context before the first manual pageview.
+		$script .= 'window.aphaCommonProps = Object.assign({}, ' . wp_json_encode( $common_props ) . ', { host: window.location.host, $host: window.location.host, $pathname: window.location.pathname, $current_url: window.location.href });' . "\n";
+		$script .= "window.aphaCapturePageview = function() {\n";
+		$script .= "	if (!window.posthog || typeof posthog.capture !== 'function') { return; }\n";
+		$script .= "	window.aphaCommonProps.host = window.location.host;\n";
+		$script .= "	window.aphaCommonProps.$host = window.location.host;\n";
+		$script .= "	window.aphaCommonProps.$pathname = window.location.pathname;\n";
+		$script .= "	window.aphaCommonProps.$current_url = window.location.href;\n";
+		$script .= "	posthog.register(window.aphaCommonProps);\n";
+		$script .= "	posthog.capture('$pageview', window.aphaCommonProps);\n";
+		$script .= "};\n";
+		$script .= "window.aphaCapturePageview();\n";
+
 		// For logged-in users, call posthog.identify() so the JS SDK uses
 		// the same wp_XX distinct_id as the server. This is critical for
 		// connecting browser events (Product Viewed, Checkout Started) with
@@ -130,6 +151,7 @@ class APHA_Frontend_Events {
 			$script .= "	if (window.posthog) {\n";
 			$script .= "		posthog.opt_in_capturing();\n";
 			$script .= "		posthog.set_config({persistence: 'localStorage+cookie'});\n";
+			$script .= "		if (typeof window.aphaCapturePageview === 'function') { window.aphaCapturePageview(); }\n";
 			$script .= "		if (typeof window.aphaInitFormIdentify === 'function') { window.aphaInitFormIdentify(); }\n";
 			$script .= "		if (typeof window.aphaInitElementVisibility === 'function') { window.aphaInitElementVisibility(); }\n";
 			$script .= "	}\n";
@@ -144,5 +166,25 @@ class APHA_Frontend_Events {
 		}
 
 		return $script;
+	}
+
+	/**
+	 * Get the funnel session ID set by the attribution engine.
+	 *
+	 * @return string Funnel session ID, or empty string if unavailable.
+	 */
+	private function get_funnel_session_id() {
+		return isset( $_COOKIE[ APHA_Attribution::COOKIE_FUNNEL_SESSION_ID ] )
+			? sanitize_text_field( wp_unslash( $_COOKIE[ APHA_Attribution::COOKIE_FUNNEL_SESSION_ID ] ) )
+			: '';
+	}
+
+	/**
+	 * Get the funnel key used by CRO reporting.
+	 *
+	 * @return string Funnel key.
+	 */
+	private function get_funnel_key() {
+		return sanitize_key( apply_filters( 'apha_funnel_key', 'book-funnel' ) );
 	}
 }

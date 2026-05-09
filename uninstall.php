@@ -44,6 +44,7 @@ $apha_meta_keys = array(
 	'_apha_ft_content',
 	'_apha_ft_term',
 	'_apha_ft_landing_page',
+	'_apha_ft_host',
 	'_apha_ft_referrer',
 	'_apha_ft_timestamp',
 	// Last-touch attribution.
@@ -53,6 +54,7 @@ $apha_meta_keys = array(
 	'_apha_lt_content',
 	'_apha_lt_term',
 	'_apha_lt_landing_page',
+	'_apha_lt_host',
 	'_apha_lt_referrer',
 	'_apha_lt_timestamp',
 	// Click IDs.
@@ -66,6 +68,7 @@ $apha_meta_keys = array(
 	// Conversion metrics.
 	'_apha_days_to_conversion',
 	'_apha_session_count',
+	'_apha_funnel_session_id',
 	// Checkout attribution.
 	'_apha_checkout_path',
 	'_apha_checkout_type',

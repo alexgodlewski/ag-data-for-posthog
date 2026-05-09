@@ -4,7 +4,7 @@ Tags: posthog, woocommerce, analytics, attribution, ecommerce
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -114,6 +114,11 @@ InsightTrail captures UTM parameters and ad click IDs (gclid, fbclid, ttclid, ms
 Yes. Both classic (shortcode) and block-based checkout flows are fully supported for identity persistence and event tracking.
 
 == Changelog ==
+
+= 1.5.1 =
+* New: Adds a stable funnel_session_id across WordPress pageview, checkout, and server-side order events
+* New: Adds funnel_key, host, source_host, source_page, and URL properties for cleaner PostHog CRO reporting
+* Fix: Captures $pageview manually after registering funnel properties so landing-page views can join to checkout/order events
 
 = 1.4.0 =
 * Renamed plugin to InsightTrail for PostHog
