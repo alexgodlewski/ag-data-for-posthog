@@ -128,11 +128,11 @@ class APHA_Frontend_Events {
 		$script .= "window.aphaCapturePageview = function() {\n";
 		$script .= "	if (!window.posthog || typeof posthog.capture !== 'function') { return; }\n";
 		$script .= "	window.aphaCommonProps.host = window.location.host;\n";
-		$script .= "	window.aphaCommonProps.$host = window.location.host;\n";
-		$script .= "	window.aphaCommonProps.$pathname = window.location.pathname;\n";
-		$script .= "	window.aphaCommonProps.$current_url = window.location.href;\n";
+		$script .= "	window.aphaCommonProps.\$host = window.location.host;\n";
+		$script .= "	window.aphaCommonProps.\$pathname = window.location.pathname;\n";
+		$script .= "	window.aphaCommonProps.\$current_url = window.location.href;\n";
 		$script .= "	posthog.register(window.aphaCommonProps);\n";
-		$script .= "	posthog.capture('$pageview', window.aphaCommonProps);\n";
+		$script .= "	posthog.capture('\$pageview', window.aphaCommonProps);\n";
 		$script .= "};\n";
 		$script .= "window.aphaCapturePageview();\n";
 
