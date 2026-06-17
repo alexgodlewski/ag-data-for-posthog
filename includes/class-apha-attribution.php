@@ -1,13 +1,13 @@
 <?php
 /**
- * InsightTrail for PostHog Attribution Engine.
+ * AG Data for PostHog Attribution Engine.
  *
  * Captures UTM parameters and ad platform click IDs from incoming URLs,
  * stores them in server-side first-party cookies (bypassing Safari ITP
  * restrictions on JS cookies), and persists attribution data to order meta
  * at checkout for server-side event enrichment.
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -210,7 +210,7 @@ class APHA_Attribution {
 	/**
 	 * Persist attribution cookies to order meta at checkout.
 	 *
-	 * Reads InsightTrail for PostHog cookies first, falls back to WooCommerce 8.5+ native
+	 * Reads AG Data for PostHog cookies first, falls back to WooCommerce 8.5+ native
 	 * attribution data when our cookies are missing.
 	 *
 	 * @param WC_Order $order WooCommerce order object.
@@ -257,7 +257,7 @@ class APHA_Attribution {
 			$order->update_meta_data( '_apha_funnel_session_id', $funnel_session_id );
 		}
 
-		// Fallback: WooCommerce 8.5+ native attribution if InsightTrail for PostHog cookies are empty.
+		// Fallback: WooCommerce 8.5+ native attribution if AG Data for PostHog cookies are empty.
 		if ( empty( $first_touch ) && empty( $last_touch ) ) {
 			$this->fallback_wc_attribution( $order );
 		}
@@ -603,7 +603,7 @@ class APHA_Attribution {
 	/**
 	 * Read WooCommerce 8.5+ native attribution as fallback.
 	 *
-	 * When InsightTrail for PostHog's own cookies are missing (blocked, expired), use WC's
+	 * When AG Data for PostHog's own cookies are missing (blocked, expired), use WC's
 	 * built-in attribution data stored in _wc_order_attribution_* meta.
 	 *
 	 * @param WC_Order $order WooCommerce order object.
@@ -645,7 +645,7 @@ class APHA_Attribution {
 	}
 
 	/**
-	 * Get all InsightTrail for PostHog meta keys used by the attribution engine.
+	 * Get all AG Data for PostHog meta keys used by the attribution engine.
 	 *
 	 * Used by uninstall.php for cleanup.
 	 *

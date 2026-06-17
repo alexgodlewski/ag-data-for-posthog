@@ -1,11 +1,11 @@
 /**
- * InsightTrail for PostHog Frontend Event Tracker.
+ * AG Data for PostHog Frontend Event Tracker.
  *
  * Captures e-commerce events (Product Viewed, Cart Viewed, Checkout Started,
  * Product Clicked, Coupon Applied/Removed, etc.) and sends them to PostHog
  * via the JS SDK.
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 (function () {
 	'use strict';

@@ -1,11 +1,11 @@
 <?php
 /**
- * InsightTrail for PostHog Identity Management.
+ * AG Data for PostHog Identity Management.
  *
  * Manages user identity resolution, cookie-based distinct IDs,
  * and PostHog identify calls for anonymous-to-known user linking.
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -94,7 +94,7 @@ class APHA_Identity {
 	 *
 	 * For anonymous visitors, prefers the PostHog JS SDK's own distinct_id
 	 * read from its cookie so server events match the browser session.
-	 * Falls back to the InsightTrail for PostHog cookie if PostHog's cookie is unavailable.
+	 * Falls back to the AG Data for PostHog cookie if PostHog's cookie is unavailable.
 	 *
 	 * @return string|null Distinct ID or null if unavailable.
 	 */

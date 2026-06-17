@@ -1,20 +1,20 @@
 <?php
 /**
- * Plugin Name: InsightTrail for PostHog
- * Plugin URI:  https://github.com/hyroescom/insighttrail-for-posthog
+ * Plugin Name: AG Data for PostHog
+ * Plugin URI:  https://github.com/alexgodlewski/ag-data-for-posthog
  * Description: PostHog Analytics for WooCommerce — server-side event tracking, marketing attribution engine, identity stitching, and LTV enrichment.
  * Version: 1.5.3
  * Author: AGStudio.ai
- * Author URI: https://agstudio.ai
+ * Author URI: https://github.com/alexgodlewski
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * WC requires at least: 7.0
  * WC tested up to: 9.6
- * Text Domain: insighttrail-for-posthog
+ * Text Domain: ag-data-for-posthog
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -59,8 +59,8 @@ add_action(
 add_filter(
 	'plugin_action_links_' . plugin_basename( __FILE__ ),
 	function ( $links ) {
-		$settings_url  = admin_url( 'admin.php?page=wc-settings&tab=insighttrail-for-posthog' );
-		$settings_link = '<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'insighttrail-for-posthog' ) . '</a>';
+		$settings_url  = admin_url( 'admin.php?page=wc-settings&tab=ag-data-for-posthog' );
+		$settings_link = '<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'ag-data-for-posthog' ) . '</a>';
 		array_unshift( $links, $settings_link );
 		return $links;
 	}
@@ -76,8 +76,8 @@ add_filter(
 			return $links;
 		}
 
-		$links[] = '<a href="https://github.com/hyroescom/insighttrail-for-posthog#readme" target="_blank">' . esc_html__( 'Documentation', 'insighttrail-for-posthog' ) . '</a>';
-		$links[] = '<a href="https://github.com/hyroescom/insighttrail-for-posthog/issues" target="_blank">' . esc_html__( 'Support', 'insighttrail-for-posthog' ) . '</a>';
+		$links[] = '<a href="https://github.com/alexgodlewski/ag-data-for-posthog#readme" target="_blank">' . esc_html__( 'Documentation', 'ag-data-for-posthog' ) . '</a>';
+		$links[] = '<a href="https://github.com/alexgodlewski/ag-data-for-posthog/issues" target="_blank">' . esc_html__( 'Support', 'ag-data-for-posthog' ) . '</a>';
 
 		return $links;
 	},
@@ -98,7 +98,7 @@ add_action(
 					?>
 					<div class="notice notice-error">
 						<p>
-							<strong>InsightTrail for PostHog</strong> requires WooCommerce to be installed and active.
+							<strong>AG Data for PostHog</strong> requires WooCommerce to be installed and active.
 						</p>
 					</div>
 					<?php

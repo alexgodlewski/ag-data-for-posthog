@@ -1,19 +1,19 @@
 <?php
 /**
- * InsightTrail for PostHog Uninstall.
+ * AG Data for PostHog Uninstall.
  *
- * Removes all InsightTrail for PostHog data from the database when the plugin is
+ * Removes all AG Data for PostHog data from the database when the plugin is
  * deleted via the WordPress admin. This includes plugin options,
  * order meta entries, and attribution data created during tracking.
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 
 // Exit if not called by WordPress during uninstall.
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 /*
- * Remove all InsightTrail for PostHog plugin options.
+ * Remove all AG Data for PostHog plugin options.
  */
 delete_option( 'apha_api_key' );
 delete_option( 'apha_region' );
@@ -26,7 +26,7 @@ delete_option( 'apha_form_identify' );
 delete_option( 'apha_element_visibility' );
 
 /*
- * Remove InsightTrail for PostHog order meta data.
+ * Remove AG Data for PostHog order meta data.
  *
  * Includes identity tracking meta, attribution meta (first-touch,
  * last-touch, click IDs), and refund dedup meta.

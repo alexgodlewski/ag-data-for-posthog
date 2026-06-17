@@ -1,12 +1,12 @@
-# InsightTrail for PostHog
+# AG Data for PostHog
 
 **PostHog Analytics for WooCommerce** — server-side event tracking, marketing attribution engine, identity stitching, and LTV enrichment.
 
 ---
 
-## What InsightTrail Does
+## What AG Data Does
 
-InsightTrail connects your WooCommerce store to [PostHog](https://posthog.com) and tracks the complete customer journey — from the first ad click to lifetime value.
+AG Data connects your WooCommerce store to [PostHog](https://posthog.com) and tracks the complete customer journey — from the first ad click to lifetime value.
 
 | Capability | What You Get |
 |---|---|
@@ -23,10 +23,10 @@ InsightTrail connects your WooCommerce store to [PostHog](https://posthog.com) a
 
 ### From GitHub
 
-1. Download the [latest release](https://github.com/hyroescom/insighttrail-for-posthog/releases)
+1. Download the [latest release](https://github.com/alexgodlewski/ag-data-for-posthog/releases)
 2. Upload the zip via **Plugins > Add New > Upload Plugin** in WordPress
-3. Activate InsightTrail for PostHog
-4. Go to **WooCommerce > Settings > InsightTrail**
+3. Activate AG Data for PostHog
+4. Go to **WooCommerce > Settings > AG Data**
 5. Enter your PostHog API key (`phc_...`)
 6. Select your region (US or EU)
 7. Done — events start flowing immediately
@@ -35,7 +35,7 @@ InsightTrail connects your WooCommerce store to [PostHog](https://posthog.com) a
 
 ```bash
 cd wp-content/plugins/
-git clone https://github.com/hyroescom/insighttrail-for-posthog.git
+git clone https://github.com/alexgodlewski/ag-data-for-posthog.git
 ```
 
 Activate in WordPress admin.
@@ -44,7 +44,7 @@ Activate in WordPress admin.
 
 ## Configuration
 
-All settings are in **WooCommerce > Settings > InsightTrail**.
+All settings are in **WooCommerce > Settings > AG Data**.
 
 | Setting | Description | Default |
 |---|---|---|
@@ -88,7 +88,7 @@ All settings are in **WooCommerce > Settings > InsightTrail**.
 
 ## Attribution Engine
 
-InsightTrail captures marketing attribution data on every visit and persists it to orders:
+AG Data captures marketing attribution data on every visit and persists it to orders:
 
 ### What Gets Captured
 
@@ -120,11 +120,11 @@ Order Completed event includes:
 
 ### Safari ITP Bypass
 
-JavaScript-set cookies with tracking parameters (like `fbclid`) are capped at **24 hours** by Safari's Intelligent Tracking Prevention. InsightTrail uses PHP `setcookie()` — these are server-set first-party cookies and persist for the full configured duration (up to 1 year).
+JavaScript-set cookies with tracking parameters (like `fbclid`) are capped at **24 hours** by Safari's Intelligent Tracking Prevention. AG Data uses PHP `setcookie()` — these are server-set first-party cookies and persist for the full configured duration (up to 1 year).
 
 ### WooCommerce Native Fallback
 
-When InsightTrail's cookies are unavailable (blocked, expired), the plugin reads WooCommerce 8.5+'s built-in `_wc_order_attribution_*` meta as a fallback.
+When AG Data's cookies are unavailable (blocked, expired), the plugin reads WooCommerce 8.5+'s built-in `_wc_order_attribution_*` meta as a fallback.
 
 ---
 
@@ -132,7 +132,7 @@ When InsightTrail's cookies are unavailable (blocked, expired), the plugin reads
 
 The #1 issue with WooCommerce + PostHog setups: browser events and server events use different identities, breaking funnels.
 
-InsightTrail solves this:
+AG Data solves this:
 
 | Scenario | Browser Events | Server Events | Connected? |
 |---|---|---|---|
@@ -144,7 +144,7 @@ InsightTrail solves this:
 
 ## Person Profile Enrichment
 
-After every order, InsightTrail updates the PostHog person profile:
+After every order, AG Data updates the PostHog person profile:
 
 **`$set` (always updated):**
 - `email`, `name`, `phone`, `city`, `state`, `country`
@@ -205,4 +205,4 @@ GPL-2.0-or-later. See [LICENSE](LICENSE) for details.
 
 ---
 
-Built by [AGStudio.ai](https://agstudio.ai)
+Built by [AGStudio.ai](https://github.com/alexgodlewski)

@@ -1,11 +1,11 @@
 <?php
 /**
- * InsightTrail for PostHog Product Data Helpers.
+ * AG Data for PostHog Product Data Helpers.
  *
  * Provides utility methods for extracting structured product and order
  * data suitable for PostHog analytics events.
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 
 defined( 'ABSPATH' ) || exit;

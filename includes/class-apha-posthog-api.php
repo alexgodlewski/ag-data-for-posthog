@@ -1,11 +1,11 @@
 <?php
 /**
- * InsightTrail for PostHog PostHog API Client.
+ * AG Data for PostHog PostHog API Client.
  *
  * Handles all HTTP communication with the PostHog capture API
  * using the WordPress HTTP API (wp_remote_post).
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -79,7 +79,7 @@ class APHA_PostHog_API {
 			$properties,
 			array(
 				'distinct_id'  => $distinct_id,
-				'$lib'         => 'insighttrail-for-posthog',
+				'$lib'         => 'ag-data-for-posthog',
 				'$lib_version' => APHA_VERSION,
 			)
 		);
@@ -172,7 +172,7 @@ class APHA_PostHog_API {
 				$properties,
 				array(
 					'distinct_id'  => $event['distinct_id'],
-					'$lib'         => 'insighttrail-for-posthog',
+					'$lib'         => 'ag-data-for-posthog',
 					'$lib_version' => APHA_VERSION,
 				)
 			);
@@ -216,7 +216,7 @@ class APHA_PostHog_API {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			wc_get_logger()->error( 'PostHog API error - ' . $response->get_error_message(), array( 'source' => 'insighttrail-for-posthog' ) );
+			wc_get_logger()->error( 'PostHog API error - ' . $response->get_error_message(), array( 'source' => 'ag-data-for-posthog' ) );
 			return false;
 		}
 
@@ -229,7 +229,7 @@ class APHA_PostHog_API {
 						'PostHog API returned HTTP %d.',
 						$response_code
 					),
-					array( 'source' => 'insighttrail-for-posthog' )
+					array( 'source' => 'ag-data-for-posthog' )
 				);
 				return false;
 			}

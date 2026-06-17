@@ -1,11 +1,11 @@
 <?php
 /**
- * InsightTrail for PostHog Frontend Events.
+ * AG Data for PostHog Frontend Events.
  *
- * Enqueues the PostHog JS SDK snippet and the InsightTrail for PostHog tracker script
+ * Enqueues the PostHog JS SDK snippet and the AG Data for PostHog tracker script
  * that captures client-side e-commerce events.
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
  * Class APHA_Frontend_Events
  *
  * Enqueues the PostHog JavaScript SDK via wp_add_inline_script() and the
- * InsightTrail for PostHog tracker script in the footer to capture browsing,
+ * AG Data for PostHog tracker script in the footer to capture browsing,
  * cart, and checkout events on the frontend.
  */
 class APHA_Frontend_Events {
@@ -29,7 +29,7 @@ class APHA_Frontend_Events {
 	}
 
 	/**
-	 * Enqueue the PostHog SDK and InsightTrail tracker script.
+	 * Enqueue the PostHog SDK and AG Data tracker script.
 	 *
 	 * jQuery is not required — the tracker guards all jQuery usage with
 	 * `if (window.jQuery)` checks. This prevents forcing jQuery on

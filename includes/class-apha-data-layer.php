@@ -1,11 +1,11 @@
 <?php
 /**
- * InsightTrail for PostHog Data Layer.
+ * AG Data for PostHog Data Layer.
  *
  * Outputs a JavaScript data layer object in the footer containing
  * structured e-commerce data for the current page context.
  *
- * @package InsightTrailForPostHog
+ * @package AGDataForPostHog
  */
 
 defined( 'ABSPATH' ) || exit;
