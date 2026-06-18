@@ -25,6 +25,8 @@ jobs:
   deploy:
     name: Deploy new version
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,10 +60,38 @@ jobs:
           fi
 
       - name: Deploy to WordPress.org
+        id: deploy
         if: steps.check.outputs.exists == 'false'
         uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          generate-zip: true
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: ag-data-for-posthog
           VERSION: ${{ steps.ver.outputs.version }}
+
+      - name: Extract changelog notes for this version
+        id: notes
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          {
+            echo "body<<__NOTES_EOF__"
+            awk -v ver="$VERSION" '
+              $0 ~ "^= "ver" =" { flag=1; next }
+              flag && (/^= [0-9]/ || /^== /) { exit }
+              flag { print }
+            ' readme.txt | sed '/^[[:space:]]*$/d'
+            echo "__NOTES_EOF__"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: v${{ steps.ver.outputs.version }}
+          body: ${{ steps.notes.outputs.body }}
+          files: ${{ steps.deploy.outputs.zip-path }}
+          fail_on_unmatched_files: false
