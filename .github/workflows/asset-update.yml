@@ -1,0 +1,35 @@
+name: Update WordPress.org assets
+
+# Publishes plugin directory assets (icon, banner, screenshots) to the
+# WordPress.org SVN /assets/ directory WITHOUT needing a version bump.
+# Runs whenever files under .wordpress-org/ change on main, or manually.
+#
+# Uses the same secrets as the deploy workflow:
+#   SVN_USERNAME, SVN_PASSWORD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.wordpress-org/**'
+  workflow_dispatch: {}
+
+concurrency:
+  group: wporg-asset-update
+  cancel-in-progress: false
+
+jobs:
+  assets:
+    name: Sync assets to WordPress.org
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update assets
+        uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ag-data-for-posthog
+          ASSETS_DIR: .wordpress-org
