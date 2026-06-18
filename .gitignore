@@ -16,3 +16,6 @@ node_modules/
 
 # Local MCP config (contains API keys)
 .mcp.json
+
+# Local env (deploy secrets live in GitHub Actions secrets, not here)
+.env

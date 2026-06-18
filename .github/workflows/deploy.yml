@@ -1,0 +1,67 @@
+name: Deploy to WordPress.org
+
+# Auto-deploys to the WordPress.org plugin directory on every push to main,
+# but ONLY when the "Stable tag" in readme.txt is a version not already
+# released on SVN. WordPress.org SVN tags are immutable, so pushes that do
+# not bump the version simply skip the deploy instead of failing.
+#
+# To cut a release: bump "Version:" in ag-data-for-posthog.php and
+# "Stable tag:" in readme.txt (must match), commit, and push to main.
+#
+# Required GitHub repo secrets (Settings -> Secrets and variables -> Actions):
+#   SVN_USERNAME  -> your WordPress.org username (levskipg)
+#   SVN_PASSWORD  -> a WordPress.org SVN password (Profile -> Account & Security)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: wporg-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy new version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read Stable tag version from readme.txt
+        id: ver
+        run: |
+          VERSION="$(grep -i '^Stable tag:' readme.txt | head -1 | awk '{print $NF}')"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Stable tag in readme.txt: $VERSION"
+
+      - name: Verify version matches the main plugin file
+        run: |
+          HEADER_VER="$(grep -i '^[[:space:]]*\*[[:space:]]*Version:' ag-data-for-posthog.php | head -1 | awk '{print $NF}')"
+          if [ "$HEADER_VER" != "${{ steps.ver.outputs.version }}" ]; then
+            echo "::error::Version mismatch — plugin header is $HEADER_VER but readme Stable tag is ${{ steps.ver.outputs.version }}. Bump both to match."
+            exit 1
+          fi
+
+      - name: Check whether this version is already released on SVN
+        id: check
+        run: |
+          URL="https://plugins.svn.wordpress.org/ag-data-for-posthog/tags/${{ steps.ver.outputs.version }}/"
+          CODE="$(curl -s -o /dev/null -w '%{http_code}' "$URL")"
+          if [ "$CODE" = "200" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Version ${{ steps.ver.outputs.version }} already on WordPress.org — skipping deploy."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Version ${{ steps.ver.outputs.version }} not yet released — deploying."
+          fi
+
+      - name: Deploy to WordPress.org
+        if: steps.check.outputs.exists == 'false'
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ag-data-for-posthog
+          VERSION: ${{ steps.ver.outputs.version }}

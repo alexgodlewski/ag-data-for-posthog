@@ -1,0 +1,29 @@
+# Files and folders that should NOT be deployed to WordPress.org SVN trunk.
+# Everything not listed here is shipped. Keep the plugin's own assets/ (the
+# runtime JS tracker) — that is required by the plugin.
+
+# Version control / CI
+/.git
+/.github
+/.gitignore
+/.gitattributes
+/.distignore
+
+# WordPress.org banner/icon/screenshot assets live in a separate SVN dir
+/.wordpress-org
+
+# Local tooling / secrets
+/.claude
+/.mcp.json
+/.env
+/.env.example
+/.editorconfig
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Build artifacts and docs not needed in the directory
+*.zip
+/node_modules
+/README.md
