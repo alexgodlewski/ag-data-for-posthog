@@ -12,10 +12,12 @@ on:
     branches: [main]
     paths:
       - '.wordpress-org/**'
+      - 'readme.txt'
   workflow_dispatch: {}
 
+# Shared with the deploy workflow so the two never write to SVN at the same time.
 concurrency:
-  group: wporg-asset-update
+  group: wporg-svn
   cancel-in-progress: false
 
 jobs:
@@ -33,3 +35,6 @@ jobs:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: ag-data-for-posthog
           ASSETS_DIR: .wordpress-org
+          # Sync only readme.txt + assets to trunk; ignore code/CI changes in
+          # the same push (those ship via the version-tagged deploy workflow).
+          IGNORE_OTHER_FILES: true

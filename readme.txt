@@ -1,5 +1,5 @@
 === AG Data for PostHog ===
-Contributors: agstudioai, levskipg
+Contributors: levskipg
 Tags: posthog, woocommerce, analytics, attribution, ecommerce
 Requires at least: 5.8
 Tested up to: 7.0
